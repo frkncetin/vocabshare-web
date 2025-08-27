@@ -117,6 +117,7 @@ export default function App() {
     normalize(w.translation).includes(normalize(search))
   )
 
+  
   return (
     <div className="app">
       <h2>VocabShare Web</h2>
