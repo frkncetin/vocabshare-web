@@ -86,10 +86,12 @@ export default function App() {
     if (!current) return
     let ok = false
     if (current.mode === 'de->tr') {
-      ok = normalize(answer) === normalize(current.translation)
-    } else {
-      ok = normalize(answer) === normalize(current.term)
-    }
+  // Türkçe cevabı kontrol et → küçük/büyük harf farkı önemsiz
+  ok = answer.trim().toLowerCase() === current.translation.trim().toLowerCase()
+} else {
+  // Almanca cevabı kontrol et → küçük/büyük harf farkı önemsiz ama artikel dahil
+  ok = answer.trim().toLowerCase() === current.term.trim().toLowerCase()
+}
     setFeedback(ok ? 'correct' : 'wrong')
     const updates = { lastAsked: Date.now() }
     if (ok) updates.score = (current.score || 0) + 1
