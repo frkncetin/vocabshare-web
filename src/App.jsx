@@ -154,30 +154,27 @@ const styles = {
   },
   modal: {
     position: 'fixed',
-    top: '0',
-    left: '0',
-    right: '0',
-    bottom: '0',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1000,
-    padding: '20px',
-    boxSizing: 'border-box'
+    zIndex: 9999,
+    padding: 20
   },
   modalContent: {
     backgroundColor: 'white',
-    padding: '25px',
-    borderRadius: '12px',
-    maxWidth: '500px',
-    width: '100%',
-    maxHeight: '80vh',
-    overflow: 'auto',
-    boxShadow: '0 20px 25px rgba(0, 0, 0, 0.1)',
-    position: 'relative',
-    margin: 'auto',
-    transform: 'translateY(0)'
+    padding: 30,
+    borderRadius: 12,
+    width: '90%',
+    maxWidth: 500,
+    maxHeight: '85vh',
+    overflowY: 'auto',
+    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+    position: 'relative'
   },
   quiz: {
     backgroundColor: 'white',
@@ -602,9 +599,36 @@ export default function App() {
           </div>
 
           {editing && (
-            <div className="modal" style={styles.modal} onClick={(e) => e.target === e.currentTarget && setEditing(null)}>
-              <div className="modal-content" style={styles.modalContent}>
-                <h3>Düzenle</h3>
+            <div 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px'
+              }}
+              onClick={(e) => e.target === e.currentTarget && setEditing(null)}
+            >
+              <div 
+                style={{
+                  backgroundColor: 'white',
+                  padding: '30px',
+                  borderRadius: '12px',
+                  width: '100%',
+                  maxWidth: '500px',
+                  maxHeight: '90vh',
+                  overflow: 'auto',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 style={{marginTop: 0, marginBottom: 20}}>Düzenle</h3>
                 <input 
                   value={editing.term} 
                   onChange={e=>setEditing({...editing, term:e.target.value})} 
