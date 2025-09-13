@@ -309,6 +309,19 @@ function weightFor(w) {
   return 1 / (1 + s)
 }
 
+// Kelime görüntüleme formatı (artikel küçük, isim büyük harf)
+function formatTermDisplay(term, category) {
+  if (category === 'İsim' || (!category)) {
+    const match = term.match(/^(der|die|das)\s+(.+)$/i)
+    if (match) {
+      const artikel = match[1].toLowerCase()
+      const noun = match[2].charAt(0).toUpperCase() + match[2].slice(1).toLowerCase()
+      return `${artikel} ${noun}`
+    }
+  }
+  return term
+}
+
 export default function App() {
   const [room, setRoom] = useState('demo')
   const [words, setWords] = useState([])
@@ -639,7 +652,7 @@ export default function App() {
                 }}
               >
                 <div>
-                  <b>{w.term}</b> - {w.translation}
+                  <b>{formatTermDisplay(w.term, w.category)}</b> - {w.translation}
                   {selectedCategory === 'İsim' && !w.category && (
                     <span style={{
                       backgroundColor: '#e53e3e',
@@ -764,7 +777,7 @@ export default function App() {
             <div className="quiz-card" style={styles.quizCard}>
               {current.mode === 'de->tr' ? (
                 <>
-                  <h3 style={styles.quizQuestion}>{current.term}</h3>
+                  <h3 style={styles.quizQuestion}>{formatTermDisplay(current.term, current.category)}</h3>
                   <input 
                     value={answer} 
                     onChange={e=>setAnswer(e.target.value)} 
@@ -804,7 +817,7 @@ export default function App() {
               {feedback==='correct' && (
                 <div style={{...styles.feedback, ...styles.feedbackCorrect}}>
                   <p>Doğru 🎉 (+{usedHint ? 1 : 2} puan)</p>
-                  <p><strong>Çeviri:</strong> {current.mode==='de->tr' ? current.term : current.translation}</p>
+                  <p><strong>Çeviri:</strong> {current.mode==='de->tr' ? formatTermDisplay(current.term, current.category) : current.translation}</p>
                   <p><strong>Örnek:</strong> <i>{current.example}</i></p>
                 </div>
               )}
@@ -812,7 +825,7 @@ export default function App() {
               {feedback==='wrong' && (
                 <div style={{...styles.feedback, ...styles.feedbackWrong}}>
                   <p>Yanlış (-1 puan)</p>
-                  <p><strong>Doğru cevap:</strong> {current.mode==='de->tr' ? current.translation : current.term}</p>
+                  <p><strong>Doğru cevap:</strong> {current.mode==='de->tr' ? current.translation : formatTermDisplay(current.term, current.category)}</p>
                   <p><strong>Örnek:</strong> <i>{current.example}</i></p>
                 </div>
               )}
