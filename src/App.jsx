@@ -108,6 +108,48 @@ const styles = {
     color: 'white',
     borderColor: '#48bb78'
   },
+  categoryTabs: {
+    display: 'flex',
+    gap: '8px',
+    marginBottom: '20px',
+    flexWrap: 'wrap',
+    backgroundColor: 'white',
+    padding: '15px',
+    borderRadius: '12px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.07)',
+    border: '1px solid #e2e8f0'
+  },
+  categoryTab: {
+    padding: '10px 16px',
+    border: '2px solid #e2e8f0',
+    borderRadius: '8px',
+    backgroundColor: 'white',
+    color: '#4a5568',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    fontSize: '14px',
+    fontWeight: '500',
+    whiteSpace: 'nowrap'
+  },
+  categoryTabActive: {
+    backgroundColor: '#48bb78',
+    color: 'white',
+    borderColor: '#48bb78',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 4px 8px rgba(72, 187, 120, 0.2)'
+  },
+  errorMessage: {
+    backgroundColor: '#fed7d7',
+    color: '#c53030',
+    padding: '12px 16px',
+    borderRadius: '8px',
+    marginBottom: '15px',
+    border: '1px solid #fbb6ce',
+    fontSize: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  },
   searchInput: {
     width: '100%',
     padding: '12px 16px',
@@ -286,9 +328,16 @@ export default function App() {
   const [usedHint, setUsedHint] = useState(false)
 
   const [search, setSearch] = useState('') // 🔎 arama filtresi
+  const [selectedCategory, setSelectedCategory] = useState('İsim') // 📁 seçili kategori
+  const [errorMessage, setErrorMessage] = useState('') // ❌ hata mesajı
 
   // Version for cache busting
   const APP_VERSION = "2024-01-15-v2"
+
+  const showError = (message) => {
+    setErrorMessage(message)
+    setTimeout(() => setErrorMessage(''), 5000) // 5 saniye sonra kaybol
+  }
 
   useEffect(() => {
     // Force reload if version changed
@@ -321,11 +370,11 @@ export default function App() {
     const tr = translation.trim()
     const ex = example.trim()
     if (!t || !tr || !ex) {
-      alert('Kelime, çeviri ve örnek zorunlu')
+      showError('Kelime, çeviri ve örnek zorunlu')
       return
     }
     if (!category) {
-      alert('Kategori seçimi zorunlu')
+      showError('Kategori seçimi zorunlu')
       return
     }
     
@@ -333,7 +382,7 @@ export default function App() {
     if (category === 'İsim') {
       const hasArticle = /^(der|die|das)\s+/i.test(t)
       if (!hasArticle) {
-        alert('İsimler için artikel (der, die, das) zorunludur')
+        showError('İsimler için artikel (der, die, das) zorunludur')
         return
       }
     } else {
@@ -344,7 +393,7 @@ export default function App() {
     const key = normalize(t)
     const exists = words.some(w => normalize(w.term) === key)
     if (exists) {
-      alert('Bu kelime zaten var')
+      showError('Bu kelime zaten var')
       return
     }
     const w = { term: t, translation: tr, example: ex, category: category, score: 0, createdAt: Date.now() }
@@ -417,7 +466,7 @@ export default function App() {
   const updateWord = (w) => {
     // Kategori seçimi kontrolü
     if (!w.category) {
-      alert('Kategori seçimi zorunlu')
+      showError('Kategori seçimi zorunlu')
       return
     }
     
@@ -426,7 +475,7 @@ export default function App() {
     if (w.category === 'İsim') {
       const hasArticle = /^(der|die|das)\s+/i.test(term)
       if (!hasArticle) {
-        alert('İsimler için artikel (der, die, das) zorunludur')
+        showError('İsimler için artikel (der, die, das) zorunludur')
         return
       }
     } else {
@@ -450,17 +499,16 @@ export default function App() {
     normalize(w.translation).includes(normalize(search))
   )
 
+  // Kelimeleri seçili kategoriye göre filtrele
+  const categoryFilteredWords = filteredWords.filter(w => {
+    if (selectedCategory === 'İsim') {
+      return w.category === 'İsim' || !w.category // Kategorisi olmayan kelimeler de İsim'de
+    }
+    return w.category === selectedCategory
+  })
+
   // Kelimeleri kategorilere göre grupla
   const categories = ['İsim', 'Sıfat', 'Fiil', 'Zarf', 'Edat']
-  const groupedWords = categories.reduce((acc, cat) => {
-    if (cat === 'İsim') {
-      // İsim kategorisine hem İsim kategorili hem de kategorisi olmayan kelimeleri ekle
-      acc[cat] = filteredWords.filter(w => w.category === cat || !w.category)
-    } else {
-      acc[cat] = filteredWords.filter(w => w.category === cat)
-    }
-    return acc
-  }, {})
 
   
   return (
@@ -486,6 +534,13 @@ export default function App() {
       </div>
       {tab==='list' ? (
         <>
+          {/* Hata mesajı */}
+          {errorMessage && (
+            <div style={styles.errorMessage}>
+              ⚠️ {errorMessage}
+            </div>
+          )}
+
           <div className="add-box" style={styles.addBox}>
             <input 
               value={term} 
@@ -546,56 +601,65 @@ export default function App() {
             style={styles.searchInput}
           />
 
+          {/* 📁 Kategori sekmeleri */}
+          <div className="category-tabs" style={styles.categoryTabs}>
+            {categories.map(cat => {
+              const wordCount = filteredWords.filter(w => 
+                cat === 'İsim' ? (w.category === cat || !w.category) : w.category === cat
+              ).length
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  style={{
+                    ...styles.categoryTab,
+                    ...(selectedCategory === cat ? styles.categoryTabActive : {})
+                  }}
+                >
+                  {cat} ({wordCount})
+                </button>
+              )
+            })}
+          </div>
+
+          {/* 📝 Kelime listesi */}
           <div className="word-list" style={styles.wordList}>
-            {categories.map(categoryName => (
-              <div key={categoryName}>
-                {groupedWords[categoryName].length > 0 && (
-                  <>
-                    <h3 style={styles.categoryHeader}>
-                      {categoryName}
-                      {categoryName === 'İsim' && groupedWords[categoryName].some(w => !w.category) && (
-                        <span style={{fontSize: '0.8rem', color: '#e53e3e', marginLeft: '10px'}}>
-                          (Kategorize edilmemiş kelimeler dahil)
-                        </span>
-                      )}
-                    </h3>
-                    {groupedWords[categoryName].map(w=>(
-                      <div 
-                        key={w.id} 
-                        onClick={()=>setEditing(w)} 
-                        style={{
-                          ...styles.wordItem,
-                          ...(editing && editing.id === w.id ? styles.wordItemHover : {}),
-                          ...(categoryName === 'İsim' && !w.category ? {
-                            borderLeft: '4px solid #e53e3e',
-                            backgroundColor: '#fef5e7'
-                          } : {})
-                        }}
-                      >
-                        <div>
-                          <b>{w.term}</b> - {w.translation}
-                          {categoryName === 'İsim' && !w.category && (
-                            <span style={{
-                              backgroundColor: '#e53e3e',
-                              color: 'white',
-                              fontSize: '10px',
-                              padding: '2px 6px',
-                              borderRadius: '10px',
-                              marginLeft: '8px'
-                            }}>
-                              Kategorisiz
-                            </span>
-                          )}
-                        </div>
-                        <div><i>{w.example}</i></div>
-                        <span style={styles.score}>⭐ {w.score||0}</span>
-                      </div>
-                    ))}
-                  </>
-                )}
+            <h3 style={styles.categoryHeader}>{selectedCategory}</h3>
+            {categoryFilteredWords.map(w=>(
+              <div 
+                key={w.id} 
+                onClick={()=>setEditing(w)} 
+                style={{
+                  ...styles.wordItem,
+                  ...(editing && editing.id === w.id ? styles.wordItemHover : {}),
+                  ...(selectedCategory === 'İsim' && !w.category ? {
+                    borderLeft: '4px solid #e53e3e',
+                    backgroundColor: '#fef5e7'
+                  } : {})
+                }}
+              >
+                <div>
+                  <b>{w.term}</b> - {w.translation}
+                  {selectedCategory === 'İsim' && !w.category && (
+                    <span style={{
+                      backgroundColor: '#e53e3e',
+                      color: 'white',
+                      fontSize: '10px',
+                      padding: '2px 6px',
+                      borderRadius: '10px',
+                      marginLeft: '8px'
+                    }}>
+                      Kategorisiz
+                    </span>
+                  )}
+                </div>
+                <div><i>{w.example}</i></div>
+                <span style={styles.score}>⭐ {w.score||0}</span>
               </div>
             ))}
-            {filteredWords.length===0 && <p>Sonuç yok</p>}
+            {categoryFilteredWords.length===0 && (
+              <p>Bu kategoride kelime yok</p>
+            )}
           </div>
 
           {editing && (
