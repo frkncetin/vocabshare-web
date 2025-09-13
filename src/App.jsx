@@ -172,9 +172,12 @@ const styles = {
     borderRadius: '12px',
     maxWidth: '500px',
     width: '100%',
-    maxHeight: '90vh',
+    maxHeight: '80vh',
     overflow: 'auto',
-    boxShadow: '0 20px 25px rgba(0, 0, 0, 0.1)'
+    boxShadow: '0 20px 25px rgba(0, 0, 0, 0.1)',
+    position: 'relative',
+    margin: 'auto',
+    transform: 'translateY(0)'
   },
   quiz: {
     backgroundColor: 'white',
@@ -599,7 +602,7 @@ export default function App() {
           </div>
 
           {editing && (
-            <div className="modal" style={styles.modal}>
+            <div className="modal" style={styles.modal} onClick={(e) => e.target === e.currentTarget && setEditing(null)}>
               <div className="modal-content" style={styles.modalContent}>
                 <h3>Düzenle</h3>
                 <input 
